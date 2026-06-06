@@ -1,63 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   History, CheckCircle2, Clock, FileText, UserPlus, 
-  Search, ShieldCheck, Filter, ArrowDownAZ 
+  Search, ShieldCheck, Filter, ArrowDownAZ, Loader2, CreditCard
 } from 'lucide-react';
-
-// Comprehensive chronological mock log array from image_1c80a9.png
-const AUDIT_LOGS = [
-  {
-    id: "LOG-001",
-    type: "Approvals",
-    title: "Quotation selected",
-    description: "Infra supplies pvt ltd selected for office furniture Q2",
-    timestamp: "23 May, 2026, 9:15 PM",
-    icon: CheckCircle2,
-    iconColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-  },
-  {
-    id: "LOG-002",
-    type: "Approvals",
-    title: "Approval pending",
-    description: "PO-2024 awaiting L2 approval by priya shah",
-    timestamp: "22 May, 2026, 09:15 AM",
-    icon: Clock,
-    iconColor: "text-purple-400 bg-purple-500/10 border-purple-500/20"
-  },
-  {
-    id: "LOG-003",
-    type: "RFQ",
-    title: "RFQ published",
-    description: "office furniture Q2 sent to 3 vendors",
-    timestamp: "19 May, 2026",
-    icon: FileText,
-    iconColor: "text-[#017E84] bg-[#017E84]/10 border-[#017E84]/20"
-  },
-  {
-    id: "LOG-004",
-    type: "Vendors",
-    title: "Vendor added",
-    description: "FastLog transport registered and pending verifications",
-    timestamp: "18 May, 2026, 3:20 PM",
-    icon: UserPlus,
-    iconColor: "text-amber-400 bg-amber-500/10 border-amber-500/20"
-  }
-];
+import { apiClient } from '../services/apiClient'; // Central Gateway Import
 
 export default function Activity_Page() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Filtering module interception logic
-  const filteredLogs = AUDIT_LOGS.filter(log => {
-    const matchesFilter = activeFilter === 'All' || log.type.toLowerCase() === activeFilter.toLowerCase();
-    const matchesSearch = 
-      log.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      log.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  
+  // 🔄 Operational API Lifecycle State Modules
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorStatus, setErrorStatus] = useState(null);
 
   const filterTabs = ['All', 'RFQ', 'Approvals', 'Invoices', 'Vendors'];
+
+  // 🔮 Asynchronous Mounting & Dependency Monitoring Lifecycle Hook matched to Screen 10 Contract
+  useEffect(() => {
+    async function loadAuditTrailRecords() {
+      try {
+        setIsLoading(true);
+        // Map parameter streams directly into central engine: GET /api/audit-logs?filter=X
+        const contractFilterToken = activeFilter === 'All' ? '' : activeFilter;
+        const data = await apiClient.auditLogs.getLogs(contractFilterToken);
+        setAuditLogs(data);
+        setErrorStatus(null);
+      } catch (err) {
+        console.error("Audit log endpoint unreachable. Injecting system insurance fallbacks.");
+        setErrorStatus("Local Simulation Ledger Active");
+        
+        // Hackathon Insurance Policy: Structured precisely to support Screen 10 contract shapes
+        setAuditLogs([
+          { "id": "LOG-9011", "type": "Quotation", "message": "Quotation selected - Infra supplies pvt ltd selected for office furniture Q2", "timestamp": "23 may 2025, 9:15 PM" },
+          { "id": "LOG-9012", "type": "Approvals", "message": "Approval pending - PO-2024 awaiting L2 approval by priya shah", "timestamp": "22 may 2025, 09:15 AM" },
+          { "id": "LOG-9013", "type": "RFQ", "message": "RFQ published - office furniture Q2 sent to 3 vendors", "timestamp": "19 may 2025" },
+          { "id": "LOG-9014", "type": "Vendors", "message": "Vendor added - FastLog transport registered and pending verifications", "timestamp": "18 may 2025, 3:20 PM" }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadAuditTrailRecords();
+  }, [activeFilter]);
+
+  // 🎨 HELPER FUNCTION: Maps contract structural log types to matching UI visual anchors dynamically
+  const getLogVisualProperties = (typeString) => {
+    switch (typeString?.toLowerCase()) {
+      case 'rfq':
+        return { icon: FileText, style: "text-[#017E84] bg-[#017E84]/10 border-[#017E84]/20" };
+      case 'approvals':
+      case 'quotation':
+        return { icon: CheckCircle2, style: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" };
+      case 'invoices':
+        return { icon: CreditCard, style: "text-amber-400 bg-amber-500/10 border-amber-500/20" };
+      case 'vendors':
+        return { icon: UserPlus, style: "text-purple-400 bg-purple-500/10 border-purple-500/20" };
+      default:
+        return { icon: Clock, style: "text-slate-400 bg-slate-500/10 border-slate-500/20" };
+    }
+  };
+
+  // Local filtering layer for live multi-input text evaluation matching message parameters
+  const filteredLogs = auditLogs.filter(log => {
+    return log.message.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           log.type.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="w-full min-h-screen bg-slate-900 text-slate-100 p-8 font-sans antialiased flex flex-col justify-between animate-fade-in">
@@ -66,9 +75,16 @@ export default function Activity_Page() {
         {/* UPPER TITLE Display Matrix Strip */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-              <History className="w-6 h-6 text-[#017E84]" /> Activity & Logs
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                <History className="w-6 h-6 text-[#017E84]" /> Activity & Logs
+              </h1>
+              {errorStatus && (
+                <span className="px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-[10px] font-black tracking-wider text-amber-400 rounded-lg uppercase">
+                  {errorStatus}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-slate-400 font-medium mt-0.5">Procurement audit trail records</p>
           </div>
           
@@ -89,6 +105,7 @@ export default function Activity_Page() {
         <div className="flex flex-wrap gap-2 mb-8 text-xs font-bold">
           {filterTabs.map((tab) => (
             <button
+              type="button"
               key={tab}
               onClick={() => setActiveFilter(tab)}
               className={`px-4 py-2 rounded-xl border transition-all duration-200 cursor-pointer ${
@@ -106,36 +123,43 @@ export default function Activity_Page() {
         <div className="bg-slate-950 border border-slate-800/60 rounded-2xl p-6 shadow-2xl relative">
           
           {/* Subtle vertical spine connector pipeline graphics rule */}
-          <div className="absolute top-8 bottom-8 left-[38px] w-0.5 bg-slate-900" />
+          <div className="absolute top-8 bottom-8 left-[38px] w-0.5 bg-slate-900/40" />
 
           <div className="space-y-6 relative z-10">
-            {filteredLogs.length > 0 ? (
+            {isLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                <Loader2 className="w-6 h-6 text-[#017E84] animate-spin" />
+                Querying System Compliance Ledger...
+              </div>
+            ) : filteredLogs.length > 0 ? (
               filteredLogs.map((log) => {
-                const LogIcon = log.icon;
+                const visualProps = getLogVisualProperties(log.type);
+                const LogIcon = visualProps.icon;
+                
                 return (
                   <div key={log.id} className="flex items-start gap-4 group animate-slide-in">
                     
                     {/* Modular Vector Icon Bubble Node */}
-                    <div className={`p-2 rounded-xl border shrink-0 transition-all duration-300 group-hover:scale-105 shadow-md ${log.iconColor}`}>
+                    <div className={`p-2 rounded-xl border shrink-0 transition-all duration-300 group-hover:scale-105 shadow-md ${visualProps.style}`}>
                       <LogIcon className="w-4 h-4" />
                     </div>
 
                     {/* Content Detail Card */}
-                    <div className="flex-1 bg-slate-900/30 border border-slate-850 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 group-hover:border-slate-800 transition-colors">
+                    <div className="flex-1 bg-slate-900/30 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 group-hover:border-slate-700 transition-colors">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-black text-white">{log.title}</span>
+                          <span className="text-xs font-black text-white capitalize">{log.type} Transaction</span>
                           <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-slate-950 border border-slate-800 rounded text-slate-400 font-mono">
-                            {log.type}
+                            {log.id}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                          {log.description}
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed font-sans">
+                          {log.message}
                         </p>
                       </div>
 
                       {/* Timestamp Text Element */}
-                      <span className="text-[10px] font-bold font-mono text-purple-400 shrink-0 self-start sm:self-auto bg-purple-500/5 px-2 py-1 rounded-lg border border-purple-500/10">
+                      <span className="text-[10px] font-bold font-mono text-purple-400 shrink-0 self-start sm:self-auto bg-purple-500/5 px-2 py-1 rounded-lg border border-purple-500/10 capitalize">
                         {log.timestamp}
                       </span>
                     </div>
