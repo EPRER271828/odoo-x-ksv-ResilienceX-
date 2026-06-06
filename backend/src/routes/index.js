@@ -11,6 +11,9 @@ const comparisonRoutes = require(
 const approvalRoutes = require(
   "../modules/approvals/approval.routes"
 );
+const dashboardRoutes =
+  require('../modules/dashboard/dashboard.routes');
+
 
 const router = express.Router();
 
@@ -20,6 +23,7 @@ router.use("/rfqs", rfqRoutes);
 router.use("/quotations",quotationRoutes);
 router.use("/comparison",comparisonRoutes);
 router.use("/approvals",approvalRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 // Future modules:
 // router.use('/users', require('../modules/users/users.routes'));
